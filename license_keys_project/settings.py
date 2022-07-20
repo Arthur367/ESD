@@ -33,11 +33,13 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-$(f2ro2o_6ba5y9xb)j8zy8a1_a-seqgn0avv!e4-xu#mqki7e'
-
+PHONENUMBER_DB_FORMAT = 'NATIONAL'
+PHONENUMBER_DEFAULT_REGION = 'KE'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['15c6-41-90-15-251.eu.ngrok.io', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['15c6-41-90-15-251.eu.ngrok.io',
+                 '127.0.0.1', 'localhost', ]
 
 
 # Application definition
@@ -45,6 +47,7 @@ ALLOWED_HOSTS = ['15c6-41-90-15-251.eu.ngrok.io', '127.0.0.1', 'localhost']
 INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
+    'phonenumber_field',
     'license_api.apps.LicenseApiConfig',
     'esdAuth.apps.EsdauthConfig',
     'django.contrib.admin',
@@ -68,6 +71,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'license_keys_project.urls'
+CORS_ORIGIN_ALLOW_ALL = True
+
 
 TEMPLATES = [
     {
@@ -149,6 +154,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

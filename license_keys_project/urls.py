@@ -25,4 +25,6 @@ urlpatterns = [
     path('project/', auth_views.LoginView.as_view(), name='login'),
     path('project/', auth_views.LogoutView.as_view(), name='logout'),
     path('project/', include('license_api.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

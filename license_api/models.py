@@ -1,6 +1,8 @@
+from email.policy import default
 from random import choices
 from uuid import uuid4
 from django.db import models
+
 
 # Create your models here.
 
@@ -19,9 +21,8 @@ class UserDetails(models.Model):
     licenseActivated = models.BooleanField(default=False)
     superUser = models.BooleanField(default=False)
     deviceId = models.CharField(max_length=100, null=True, blank=True)
-    planTypes = models.CharField(
-        max_length=50, choices=PLANT_TYPES, default="Individual")
-    userNumbers = models.PositiveSmallIntegerField(
+    firstUse = models.BooleanField(default=True)
+    userNumbers = models.PositiveIntegerField(
         default=1)
     license = models.ForeignKey(
         "LicenseKey", on_delete=models.CASCADE, null=True, blank=True)
@@ -39,11 +40,11 @@ class LicenseKey(models.Model):
     activated = models.BooleanField(
         default=False
     )
-    numberOfUsers = models.IntegerField(
+    numberOfUsers = models.PositiveIntegerField(
         default=0
     )
-    maxUsers = models.IntegerField(
-        default=0
+    maxUsers = models.PositiveIntegerField(
+        default=1
     )
     activatedTo = models.DateField(
         null=True,
@@ -62,3 +63,8 @@ class SubUser(models.Model):
 
     def __str__(self) -> str:
         return self.licenseKey
+
+
+class UpdateFile(models.Model):
+    appVersion = models.CharField(null=True, blank=True, max_length=50)
+    appFile = models.FileField(upload_to='app')

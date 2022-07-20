@@ -218,6 +218,7 @@
         <span class="mask  bg-gradient-primary  opacity-6"></span>
       </div>
       <div class="card card-body mx-3 mx-md-4 mt-n6">
+        
         <form action="" method="post">
           {%csrf_token%}
           <div class="row gx-4 mb-2">
@@ -281,7 +282,8 @@
                         {{ form.licenseActivated }}
                         <label class="form-check-label text-body ms-3 text-truncate w-80 mb-0" for="flexSwitchCheckDefault">Activate License Manually</label>
                       </div>
-                      <input type="submit" value="Update User"/>
+                      <input type="submit" value="Update User"/>  
+                      <button id="btn-email" type="button">Assign License</button>                    
                     </li>
                     {% comment %} <li class="list-group-item border-0 px-0">
                       <div class="form-check form-switch ps-0">
@@ -340,10 +342,12 @@
                     <li class="list-group-item border-0 ps-0 pt-0 text-sm"><strong class="text-dark">Company name:</strong> &nbsp; {{userDetails.companyName}}</li>
                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Mobile:</strong> &nbsp; {{userDetails.contactPhone}}</li>
                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Email:</strong> &nbsp; {{userDetails.email}}</li>
-                    <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Device ID:</strong> &nbsp; {{userDetails.devices.deviceId}}</li>
+                    <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Device ID:</strong> &nbsp; {{userDetails.deviceId}}</li>
                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">License Key:</strong> &nbsp; {{userDetails.license.key}}</li>
                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Max Users:</strong> &nbsp; {{userDetails.userNumbers}}</li>
-                    <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">License Expires:</strong> &nbsp; {{userDetails.license.activatedTo}}</li>
+                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">Number of Users:</strong> &nbsp; {{userDetails.license.numberOfUsers}}</li>
+                    <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">License Created:</strong> &nbsp; {{userDetails.license.dateActivated}}</li>
+                     <li class="list-group-item border-0 ps-0 text-sm"><strong class="text-dark">License Expires:</strong> &nbsp; {{userDetails.license.activatedTo}}</li>
                     <li class="list-group-item border-0 ps-0 pb-0">
                       <strong class="text-dark text-sm">Social:</strong> &nbsp;
                       <a class="btn btn-facebook btn-simple mb-0 ps-1 pe-2 py-0" href="javascript:;">
@@ -438,6 +442,7 @@
                     </div>                    
                     <div class="card-body p-3">
                       <p class="mb-0 text-sm">{{i.id}}</p>
+                      <p class="mb-0 text-sm">{{i.deviceID}}</p>
                       <a href="javascript:;">
                         <h5>
                           {{i.licenseKey}}
@@ -708,6 +713,22 @@
       }
       Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
     }
+    var my_token = "{{ csrf_token }}"; 
+    let payload = {
+        "csrfmiddlewaretoken": my_token,// populated later within form
+            }
+    var protocol = window.location.protocol
+    var host = window.location.host
+    var url = protocol + '//' + host + '/project/assignLicense'
+    var id = "{{id}}"
+    document.getElementById("btn-email").addEventListener("click", () => {      
+      console.log("Clicked")
+      fetch(`${url}/${id}`, {
+    method: 'POST',headers:{"X-CSRFToken": my_token},})
+      .then(res => res.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.log(error))
+    })
   </script>
   <!-- Github buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
