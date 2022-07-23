@@ -1,11 +1,12 @@
 from ast import Not
-import datetime
+from datetime import datetime, timedelta
 from email import message
 import json
 from multiprocessing import context
 from operator import sub
 import re
 from django import views
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework.response import Response
 from rest_framework import viewsets
@@ -18,17 +19,13 @@ from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import APIView
-from license_api.forms import UserForm
+from license_api.forms import UserForm, AppForm
 from django.core.mail import EmailMessage
 from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.template import Context
 from django.template.loader import get_template
 from django.core.exceptions import ValidationError
 from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 
 # Create your views here.
@@ -67,8 +64,8 @@ class UserViewSet(APIView):
                 else:
                     maxUser = int(userData["userNumbers"])
                 license = LicenseKey(
-                    dateActivated=datetime.datetime.today().date(),
-                    activatedTo=datetime.datetime.today() +
+                    dateActivated=datetime.today().date(),
+                    activatedTo=datetime.today() +
                     relativedelta(years=3),
                     maxUsers=maxUser
                 )
@@ -95,12 +92,38 @@ class LicenseViewSet(viewsets.ModelViewSet):
 
 
 def home(request):
-    return render(request, 'dashboard.html')
+    qs = UpdateFile.objects.all()
+    apps = UpdateFile.objects.count()
+    users = UserDetails.objects.count()
+    startdate = datetime.today().date()
+    enddate = startdate + relativedelta(days=6)
+    license = LicenseKey.objects.all()
+    data_list = []
+    for lic in license:
+        number_of_users = lic.numberOfUsers
+        data_list.append(number_of_users)
+    total_users = sum(data_list)
+    if request.method == 'POST':
+        form = AppForm(request.POST, request.FILES,)
+        if form.is_valid():
+            app = form.save(commit=False)
+            app.uploadedDate = datetime.today().date()
+            app.save()
+            # uploadDate = UpdateFile(
+            #     uploadedDate=datetime.datetime.today().date())
+            # uploadDate.save()
+            return redirect('dashboard')
+    else:
+        form = AppForm(request.FILES)
+    context = {"form": form, "apps": qs, "number": apps,
+               "users": users, "filter": total_users}
+
+    return render(request, 'dashboard.html', context)
 
 
 def table(request):
     context = {}
-    qs = UserDetails.objects.all()
+    qs = UserDetails.objects.all().order_by("fullName")
     paginator = Paginator(qs, 10)
     page = request.GET.get('page', 1)
     context["datas"] = qs
@@ -149,7 +172,11 @@ def billing(request):
 
 
 def notification(request):
-    return render(request, 'notifications.html')
+    qs = UpdateFile.objects.all()
+    apps = UpdateFile.objects.count()
+    users = UserDetails.objects.count()
+    context = {"apps": qs, "number": apps, "users": users}
+    return render(request, 'notifications.html', context)
 
 
 class SubUserViewSet(APIView):
@@ -189,7 +216,7 @@ class SubUserViewSet(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
             else:
                 if admin.subUser:
-                    if datetime.datetime.today().date() <= license.first().activatedTo:
+                    if datetime.today().date() <= license.first().activatedTo:
                         if admin.subUser.deviceID == userData['deviceID']:
                             return Response({'message': 'Welcome Back'},
                                             status=status.HTTP_200_OK)
@@ -256,7 +283,7 @@ class CheckLicense(APIView):
                              ' License Key exists'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        if datetime.datetime.today().date() <= license.first().activatedTo:
+        if datetime.today().date() <= license.first().activatedTo:
             if admin.firstUse is False:
                 if admin.licenseActivated is False:
                     return Response({"message": "License Key Deactivated."
@@ -329,7 +356,7 @@ class CheckLicenseValidity(APIView):
                              ' License Key exists'},
                             status=status.HTTP_400_BAD_REQUEST)
         if license and admin:
-            if admin.licenseActivated is True and datetime.datetime.today().date() <= license.first().activatedTo:
+            if admin.licenseActivated is True and datetime.today().date() <= license.first().activatedTo:
                 return Response({"message": "Activated"},
                                 status=status.HTTP_200_OK)
             else:

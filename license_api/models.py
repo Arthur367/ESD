@@ -68,3 +68,5 @@ class SubUser(models.Model):
 class UpdateFile(models.Model):
     appVersion = models.CharField(null=True, blank=True, max_length=50)
     appFile = models.FileField(upload_to='app')
+    uploadedDate = models.DateField(null=True,
+                                    blank=True)
